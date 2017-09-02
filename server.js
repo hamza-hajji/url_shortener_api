@@ -6,10 +6,11 @@
 'use strict';
 
 var {MongoClient} = require('mongodb');
-var fs = require('fs');
-var express = require('express');
-var app = express();
+var fs            = require('fs');
+var express       = require('express');
+var validator     = require('validator');
 
+var app = express();
 const Mongo_URI = 'mongodb://localhost:27017/short_urls';
 
 if (!process.env.DISABLE_XORIGIN) {
@@ -44,9 +45,42 @@ app.route('/')
 app.route('/:url')
   .post(function (req, res) {
     MongoClient.connect(Mongo_URI, function (err, db) {
-      if (err) console.log('Error connecting to the Database', err);
+      if (err) return console.log('Error connecting to the Database', err);
 
+      var all_docs = [];
+      // query the database and store all url indices in an array
+      db.collection('urls').find().toArray(function (docs) {
+        all_docs = docs;
+      });
 
+      var short_indices = all_docs.map(function (doc) {
+        return doc.short_url_index;
+      });
+
+      // keep generating numbers until you find a unique one
+      var random_num = 0;
+      while (true) {
+        random_num = Math.floor(10000 * Math.random() + 1);
+        if (short_indices.indexOf(random_num) === -1) {
+          break;
+        }
+      }
+
+      // check if original url is a valid url
+      if (!validator.isURL(req.params.url))
+        return res.status(400).send({error: 'Invalid URL'});
+
+      db.collection('urls').insertOne({
+        original_url: req.params.url,
+        short_url_index: random_num,
+        short_url: req.protocol + '://' + req.get('host') + '/' + random_num
+      }, function (err, doc) {
+        if (err) return res.status(400).send({error: err});
+        res.send({
+          original_url: req.params.url,
+          short_url: req.protocol + '://' + req.get('host') + '/' + random_num
+        });
+      });
 
       db.close();
     });
@@ -54,13 +88,9 @@ app.route('/:url')
 
 app.route('/:short_url_index')
   .get(function (req, res) {
-    MongoClient.connect(Mongo_URI, function (err, db) {
-      if (err) console.log('Error connecting to the Database', err);
 
+    
 
-      db.close();
-
-    });
   });
 
 
