@@ -80,7 +80,7 @@ app.route('/:short_url_index')
       short_url_index: req.params.short_url_index
     }).then(function (doc) {
       var original_url = doc.original_url;
-      if (original_url.startsWith('http')) original_url += 'https://';
+      if (!original_url.startsWith('http')) original_url += 'https://';
       res.redirect(doc.original_url);
     });
   });
