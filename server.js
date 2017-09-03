@@ -76,7 +76,11 @@ app.route(/^\/(.+)/)
 
 app.route('/:short_url_index')
   .get(function (req, res) {
-
+    Url.findOne({
+      short_url_index: req.params.short_url_index
+    }).then(function (doc) {
+      res.redirect(doc.original_url);
+    });
   });
 
 
