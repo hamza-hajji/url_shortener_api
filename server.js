@@ -76,12 +76,17 @@ app.route(/^\/(.+)/)
 
 app.route('/:short_url_index')
   .get(function (req, res) {
+    var short_url_index = Number(req.params.short_url_index);
+    console.log(short_url_index);
     Url.findOne({
-      short_url_index: req.params.short_url_index
+      short_url_index: short_url_index
     }).then(function (doc) {
       var original_url = doc.original_url;
-      if (!original_url.startsWith('http')) original_url += 'https://';
-      res.redirect(doc.original_url);
+      if (!original_url.startsWith('http')) original_url = 'http://' + original_url;
+      console.log(original_url);
+      res.redirect(original_url);
+    }).catch(function (err) {
+      res.status(400).send({error: err});
     });
   });
 
