@@ -2,7 +2,8 @@
 	"name": "url-shortener",
 	"dependencies": {
 		"express": "^4.14.0",
-		"mongodb": "^2.2.31",
+		"lodash": "^4.17.4",
+		"mongoose": "^4.11.9",
 		"validator": "^8.1.0"
 	},
 	"main": "server.js",
